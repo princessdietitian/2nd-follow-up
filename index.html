@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第二次回診問卷 | 公主營養師</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#F5F0E8;color:#3a3228;min-height:100vh}
+
+/* ── HEADER ── */
+.header{background:#4a5a2a;padding:20px;text-align:center}
+.header-logo{font-size:12px;color:#a8c870;letter-spacing:3px;margin-bottom:6px}
+.header-title{font-size:20px;font-weight:700;color:white}
+.header-sub{font-size:13px;color:#c8d8a0;margin-top:4px}
+
+/* ── PROGRESS ── */
+.progress-wrap{background:white;border-bottom:1px solid #e0d8c0;padding:12px 16px;position:sticky;top:0;z-index:100}
+.progress-steps{display:flex;justify-content:center;gap:4px;max-width:480px;margin:0 auto}
+.step{flex:1;text-align:center;font-size:10px;color:#b0a898}
+.step.active{color:#4a5a2a;font-weight:600}
+.step.done{color:#7a9a3a}
+.step-dot{width:22px;height:22px;border-radius:50%;background:#e0d8c0;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:10px;color:#b0a898}
+.step.active .step-dot{background:#4a5a2a;color:white}
+.step.done .step-dot{background:#7a9a3a;color:white}
+.progress-bar{height:3px;background:#e0d8c0;border-radius:2px;max-width:480px;margin:8px auto 0}
+.progress-fill{height:3px;background:#4a5a2a;border-radius:2px;transition:width .4s}
+
+/* ── PAGES ── */
+.page{display:none;max-width:480px;margin:0 auto;padding:24px 20px 40px}
+.page.active{display:block}
+
+/* ── SECTION ── */
+.section-title{font-size:16px;font-weight:700;color:#4a5a2a;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.section-desc{font-size:13px;color:#7a6e5f;margin-bottom:20px;line-height:1.6}
+.field-group{margin-bottom:20px}
+.field-label{font-size:14px;font-weight:500;color:#3a3228;margin-bottom:8px;display:block}
+.field-label span{font-size:12px;color:#a09080;font-weight:400;margin-left:4px}
+.field-input{width:100%;padding:12px 14px;border:1.5px solid #d0c8b0;border-radius:10px;background:white;font-size:15px;color:#3a3228;outline:none;font-family:inherit;transition:border-color .2s}
+.field-input:focus{border-color:#4a5a2a}
+
+/* ── SYMPTOM SCALE (跟初診/FU1共用同一套元件) ── */
+.symptom-item{background:white;border-radius:12px;padding:14px;margin-bottom:10px;border:1.5px solid #e0d8c0}
+.symptom-name{font-size:14px;font-weight:500;color:#3a3228;margin-bottom:10px}
+.scale-opts{display:flex;gap:4px}
+.scale-opt{flex:1;text-align:center}
+.scale-opt input{display:none}
+.scale-opt label{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 2px;border-radius:8px;transition:all .15s}
+.scale-opt label .dot{width:28px;height:28px;border-radius:50%;border:1.5px solid #d0c8b0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#b0a898;transition:all .15s;text-align:center}
+.scale-opt label .lbl{font-size:9px;color:#b0a898;line-height:1.2;text-align:center}
+.scale-opt input:checked + label .dot{background:#4a5a2a;border-color:#4a5a2a;color:white}
+.scale-opt input:checked + label .lbl{color:#4a5a2a;font-weight:600}
+
+/* ── OPTION PILL (複選/單選題) ── */
+.option-pill{display:block;position:relative;padding:14px 16px 14px 44px;border:1.5px dashed #c8d8a0;border-radius:10px;background:white;font-size:14px;color:#3a3228;margin-bottom:10px;cursor:pointer;transition:all .15s}
+.option-pill input{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;accent-color:#4a5a2a;cursor:pointer}
+.option-pill.selected{border-style:solid;border-color:#4a5a2a;background:#f0f4e4}
+.option-hint{display:inline-block;font-size:11px;color:#7a9a3a;background:#eaf1da;padding:2px 10px;border-radius:99px;margin-bottom:12px}
+
+/* ── SLIDER ── */
+.slider-row{background:white;border-radius:12px;padding:16px;margin-bottom:14px;border:1.5px solid #e0d8c0}
+.slider-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.slider-label-row .name{font-size:14px;font-weight:500}
+.slider-value{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:28px;border-radius:8px;background:#4a5a2a;color:white;font-size:13px;font-weight:600}
+input[type=range]{width:100%;height:4px;-webkit-appearance:none;appearance:none;background:#e0d8c0;border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#4a5a2a;cursor:pointer;border:3px solid white;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#4a5a2a;cursor:pointer;border:3px solid white}
+.slider-scale{display:flex;justify-content:space-between;font-size:11px;color:#b0a898;margin-top:6px}
+
+/* ── 圖片題 ── */
+.food-image-wrap{border:1.5px dashed #d0c8b0;border-radius:12px;padding:16px;margin-bottom:20px;background:white}
+.food-image-caption{font-size:12px;color:#a09080;margin-top:8px;line-height:1.5}
+
+/* ── NAV BUTTONS ── */
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
+.btn-back{padding:12px 24px;border-radius:99px;border:1.5px solid #d0c8b0;background:white;color:#5a5040;font-size:14px;cursor:pointer;font-family:inherit}
+.btn-next{flex:1;padding:14px;border-radius:99px;border:none;background:#4a5a2a;color:white;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px}
+.btn-next:hover{background:#3a4a1a}
+.btn-next:disabled{opacity:.5;cursor:not-allowed}
+
+.required-note{font-size:12px;color:#a09080;margin-bottom:20px}
+
+#successPage{display:none;max-width:480px;margin:0 auto;padding:60px 20px;text-align:center}
+.success-icon{font-size:56px;margin-bottom:16px}
+.success-title{font-size:22px;font-weight:700;color:#4a5a2a;margin-bottom:10px}
+.success-desc{font-size:15px;color:#7a6e5f;line-height:1.7}
+
+.error-msg{background:#fce8e8;border:1px solid #e0a0a0;border-radius:10px;padding:12px 14px;font-size:13px;color:#8a3030;margin-top:12px;display:none}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     ⚙️  設定區（只需改這裡）
+     ════════════════════════════════ -->
+<script>
+const ENDPOINT = 'https://hook.eu1.make.com/gut92aa2of9cy6qpvd6tr9cw0khcwkd2' // 跟初診/FU1共用同一個 webhook
+const FORM_TYPE = '2nd follow up' // 需與 Airtable「填表階段」選項完全一致(含大小寫、空格)
+</script>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">公主營養師</div>
+  <div class="header-title">第二次回診問卷</div>
+  <div class="header-sub">持續追蹤你的身體變化與飲食習慣</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps">
+    <div class="step active" id="step1"><div class="step-dot">1</div>體重</div>
+    <div class="step" id="step2"><div class="step-dot">2</div>肌膚免疫</div>
+    <div class="step" id="step3"><div class="step-dot">3</div>消化代謝</div>
+    <div class="step" id="step4"><div class="step-dot">4</div>營養知識</div>
+    <div class="step" id="step5"><div class="step-dot">5</div>腸道好菌</div>
+    <div class="step" id="step6"><div class="step-dot">6</div>份量評估</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:16.6%"></div></div>
+</div>
+
+<!-- ═══ PAGE 1：基本識別 + 空腹體重 ═══ -->
+<div class="page active" id="page1">
+  <div class="section-title">👤 基本資料</div>
+  <p class="section-desc">請填寫你的識別資訊,方便我們對應到你的紀錄</p>
+  <p class="required-note">* 為必填欄位</p>
+
+  <div class="field-group">
+    <label class="field-label">你的名字 *</label>
+    <input class="field-input" type="text" id="f_name" placeholder="請輸入姓名">
+  </div>
+  <div class="field-group">
+    <label class="field-label">手機號碼 * <span>（作為識別碼，請與初診填寫的一致）</span></label>
+    <input class="field-input" type="tel" id="f_phone" placeholder="09xxxxxxxx">
+  </div>
+
+  <div class="section-title" style="margin-top:8px">🫀 生理表徵</div>
+  <div class="field-group">
+    <label class="field-label">你的空腹體重（kg） *</label>
+    <input class="field-input" type="number" id="f_weight" placeholder="請填入數字">
+  </div>
+
+  <div class="nav-row">
+    <div></div>
+    <button class="btn-next" onclick="goTo(2)">下一步 →</button>
+  </div>
+  <div class="error-msg" id="err1">請填寫姓名、手機號碼與空腹體重</div>
+</div>
+
+<!-- ═══ PAGE 2：肌膚與免疫 ═══ -->
+<div class="page" id="page2">
+  <div class="section-title">😴 肌膚與免疫</div>
+  <p class="section-desc">請以過去兩週的感受填寫</p>
+  <div id="symptoms_immune"></div>
+
+  <div class="nav-row">
+    <button class="btn-back" onclick="goTo(1)">← 上一步</button>
+    <button class="btn-next" onclick="goTo(3)">下一步 →</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 3：消化與代謝 ═══ -->
+<div class="page" id="page3">
+  <div class="section-title">🍃 消化與代謝</div>
+  <p class="section-desc">請以過去兩週的感受填寫</p>
+  <div id="symptoms_digestion"></div>
+
+  <div class="nav-row">
+    <button class="btn-back" onclick="goTo(2)">← 上一步</button>
+    <button class="btn-next" onclick="goTo(4)">下一步 →</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 4：營養學知識 ═══ -->
+<div class="page" id="page4">
+  <div class="section-title">📚 營養學知識</div>
+  <p class="section-desc">了解你目前對飲食概念的掌握程度</p>
+
+  <div class="field-group">
+    <label class="field-label">建構肌肉需要哪些營養素？</label>
+    <span class="option-hint">複選</span>
+    <div id="opts_muscle_nutrients"></div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">下列哪些是推薦的『好油脂』呢？</label>
+    <span class="option-hint">複選</span>
+    <div id="opts_good_fats"></div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">腸道健康有哪些好處</label>
+    <span class="option-hint">複選</span>
+    <div id="opts_gut_benefits"></div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-back" onclick="goTo(3)">← 上一步</button>
+    <button class="btn-next" onclick="goTo(5)">下一步 →</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 5：腸道好菌 ═══ -->
+<div class="page" id="page5">
+  <div class="section-title">🦠 腸道好菌</div>
+  <p class="section-desc">了解你對腸道保健的掌握程度</p>
+
+  <div class="field-group">
+    <label class="field-label">腸道『好菌』喜歡吃哪些食物？</label>
+    <span class="option-hint">複選</span>
+    <div id="opts_probiotic_food"></div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label">什麼時候是服用益生菌的好時機？</label>
+    <span class="option-hint">複選</span>
+    <div id="opts_probiotic_timing"></div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-back" onclick="goTo(4)">← 上一步</button>
+    <button class="btn-next" onclick="goTo(6)">下一步 →</button>
+  </div>
+</div>
+
+<!-- ═══ PAGE 6：飲食份量評估 ═══ -->
+<div class="page" id="page6">
+  <div class="section-title">🍱 飲食份量評估</div>
+  <p class="section-desc">請觀察圖片中的食物，並回答以下題目</p>
+
+  <div class="food-image-wrap">
+    <img src="familymartbento.png" alt="飲食份量測驗圖" style="width:100%;border-radius:14px;display:block">
+    <div class="food-image-caption">＊這是一個香烤雞胸蔬菜餐，請參考食品標示</div>
+  </div>
+
+  <div id="sliders_container"></div>
+
+  <div class="field-group">
+    <label class="field-label">你覺得這是一款營養師會建議買的便當嗎？</label>
+    <div id="opts_bento_judge"></div>
+  </div>
+
+  <div class="nav-row">
+    <button class="btn-back" onclick="goTo(5)">← 上一步</button>
+    <button class="btn-next" id="submitBtn" onclick="submitForm()">送出表單✔︎</button>
+  </div>
+  <div class="error-msg" id="errSubmit">送出失敗，請檢查網路後再試</div>
+</div>
+
+<!-- SUCCESS -->
+<div id="successPage">
+  <div class="success-icon">🌿</div>
+  <div class="success-title">感謝你的填寫！</div>
+  <p class="success-desc">我們已收到你的回診追蹤資料<br>營養師會在下次諮詢前仔細閱讀<br><br>如有任何問題請透過 LINE 聯繫我們</p>
+</div>
+
+<script>
+// ══ 症狀題目定義（睡眠5項沿用FU1原本的id,消化代謝為新類別） ══
+const SYMPTOMS = {
+  immune: [
+    {id:'肌｜痘痘/粉刺', label:'痘痘/粉刺'},
+    {id:'肌｜皮膚乾燥/紅疹', label:'皮膚乾燥/紅疹'},
+    {id:'肌｜過敏', label:'過敏'},
+    {id:'肌｜鼻塞', label:'鼻塞'},
+    {id:'肌｜流鼻水', label:'流鼻水'},
+    {id:'肌｜喉嚨有痰', label:'喉嚨有痰'},
+    {id:'肌｜牙齦/喉嚨發炎', label:'牙齦/喉嚨發炎'},
+    {id:'肌｜嘴破/潰瘍', label:'嘴破/潰瘍'},
+  ],
+  digestion: [
+    {id:'消｜脹氣', label:'脹氣'},
+    {id:'消｜胃酸多/胃食道逆流', label:'胃酸多／胃食道逆流'},
+    {id:'消｜噁心/想吐', label:'噁心／想吐'},
+    {id:'消｜便秘', label:'便秘'},
+    {id:'消｜拉肚子', label:'拉肚子'},
+    {id:'消｜排氣', label:'排氣'},
+    {id:'消｜水腫', label:'水腫'},
+    {id:'消｜頻尿/憋尿困難', label:'頻尿／憋尿困難'},
+    {id:'消｜痘痘/粉刺', label:'痘痘／粉刺'},
+  ],
+};
+
+const SCALE_LABELS = ['幾乎\n無發生','偶爾發生\n症狀不嚴重','偶爾發生\n症狀嚴重','經常發生\n症狀不嚴重','經常發生\n症狀嚴重'];
+
+function buildSymptoms(group, containerId) {
+  const container = document.getElementById(containerId);
+  SYMPTOMS[group].forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'symptom-item';
+    div.innerHTML = `<div class="symptom-name">${s.label}</div>
+      <div class="scale-opts">
+        ${[0,1,2,3,4].map(v=>`
+          <div class="scale-opt">
+            <input type="radio" name="${s.id}" id="${s.id}_${v}" value="${v}">
+            <label for="${s.id}_${v}">
+              <div class="dot">${v}</div>
+              <div class="lbl">${SCALE_LABELS[v].replace('\n','<br>')}</div>
+            </label>
+          </div>`).join('')}
+      </div>`;
+    container.appendChild(div);
+  });
+}
+buildSymptoms('immune','symptoms_immune');
+buildSymptoms('digestion','symptoms_digestion');
+
+// ══ 複選/單選 pill 題組 ══
+function buildOptionGroup(containerId, name, options, type) {
+  const container = document.getElementById(containerId);
+  options.forEach((opt,i) => {
+    const id = `${name}_${i}`;
+    const label = document.createElement('label');
+    label.className = 'option-pill';
+    label.setAttribute('for', id);
+    label.innerHTML = `<input type="${type}" name="${name}" id="${id}" value="${opt}"><span>${opt}</span>`;
+    container.appendChild(label);
+  });
+  container.addEventListener('change', e => {
+    if (type === 'checkbox') {
+      e.target.closest('label').classList.toggle('selected', e.target.checked);
+    } else {
+      container.querySelectorAll('.option-pill').forEach(l => l.classList.remove('selected'));
+      e.target.closest('label').classList.add('selected');
+    }
+  });
+}
+buildOptionGroup('opts_muscle_nutrients','muscle_nutrients',['蛋白質','鋅','維生素B群','天然香料','代糖'],'checkbox');
+buildOptionGroup('opts_good_fats','good_fats',['酪梨','大豆油','堅果','橄欖油','葵花油','奶油','亞麻仁油'],'checkbox');
+buildOptionGroup('opts_gut_benefits','gut_benefits',['有好心情','免疫機能好','皮膚有光澤','營養好吸收'],'checkbox');
+buildOptionGroup('opts_probiotic_food','probiotic_food',['益生菌','酸黃瓜','蔬菜','無糖鮮奶茶','納豆','全麥麵包','水果'],'checkbox');
+buildOptionGroup('opts_probiotic_timing','probiotic_timing',['吃完抗生素','便秘兩天','便秘兩週','拉肚子兩週','想吃就吃'],'checkbox');
+buildOptionGroup('opts_bento_judge','bento_judge',['可以 🟢','免強 🟡','不建議 🔴'],'radio');
+
+// ══ 滑桿題組（沿用FU1的份數定義,Airtable欄位可共用） ══
+const SLIDERS = [
+  {id:'slider_veg', label:'『蔬菜』有幾份？'},
+  {id:'slider_meat', label:'『肉類』有幾份？'},
+  {id:'slider_oil', label:'『油脂』有幾份？'},
+  {id:'slider_carb', label:'『主食』有幾份？'},
+];
+function buildSliders() {
+  const container = document.getElementById('sliders_container');
+  SLIDERS.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'slider-row';
+    div.innerHTML = `
+      <div class="slider-label-row"><span class="name">${s.label}</span><span class="slider-value" id="${s.id}_val">0</span></div>
+      <input type="range" id="${s.id}" min="0" max="5" step="0.5" value="0" oninput="document.getElementById('${s.id}_val').textContent=this.value">
+      <div class="slider-scale"><span>0 份</span><span>5 份</span></div>`;
+    container.appendChild(div);
+  });
+}
+buildSliders();
+
+// ══ 頁面切換 ══
+let curPage = 1;
+const TOTAL_STEPS = 6;
+function goTo(n) {
+  if (n > curPage && curPage === 1) {
+    const name = document.getElementById('f_name').value.trim();
+    const phone = document.getElementById('f_phone').value.trim();
+    const weight = document.getElementById('f_weight').value.trim();
+    if (!name || !phone || !weight) {
+      document.getElementById('err1').style.display = 'block';
+      return;
+    }
+    document.getElementById('err1').style.display = 'none';
+  }
+  document.getElementById(`page${curPage}`).classList.remove('active');
+  document.getElementById(`page${n}`).classList.add('active');
+  curPage = n;
+  document.getElementById('progressFill').style.width = Math.round(n/TOTAL_STEPS*100) + '%';
+  for (let i=1; i<=TOTAL_STEPS; i++) {
+    const el = document.getElementById(`step${i}`);
+    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    el.querySelector('.step-dot').textContent = i < n ? '✓' : i;
+  }
+  window.scrollTo(0,0);
+}
+
+function getSymptomValue(name) {
+  const checked = document.querySelector(`input[name="${name}"]:checked`);
+  return checked ? parseInt(checked.value) : null;
+}
+function getCheckedValues(name) {
+  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
+}
+function getRadioValue(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+
+// ══ 送出表單 ══
+async function submitForm() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '送出中…';
+
+  const fields = {
+    '填表階段': FORM_TYPE,
+    '你的名字': document.getElementById('f_name').value.trim(),
+    '手機': document.getElementById('f_phone').value.trim(),
+    '體重': parseFloat(document.getElementById('f_weight').value) || null,
+    '建構肌肉營養素': getCheckedValues('muscle_nutrients'),
+    '推薦好油脂': getCheckedValues('good_fats'),
+    '腸道健康好處': getCheckedValues('gut_benefits'),
+    '好菌喜歡的食物': getCheckedValues('probiotic_food'),
+    '益生菌服用時機': getCheckedValues('probiotic_timing'),
+    '蔬菜份數': parseFloat(document.getElementById('slider_veg').value),
+    '肉類份數': parseFloat(document.getElementById('slider_meat').value),
+    '油脂份數': parseFloat(document.getElementById('slider_oil').value),
+    '主食份數': parseFloat(document.getElementById('slider_carb').value),
+    '便當評價': getRadioValue('bento_judge'),
+  };
+
+  const symptomRows = [];
+  Object.values(SYMPTOMS).flat().forEach(s => {
+    const val = getSymptomValue(s.id);
+    if (val !== null) symptomRows.push({ '題目': s.id, '結果': val });
+  });
+  if (symptomRows.length > 0) fields['症狀紀錄'] = symptomRows;
+
+  Object.keys(fields).forEach(k => {
+    const v = fields[k];
+    if (v === null || v === '' || (Array.isArray(v) && v.length === 0)) delete fields[k];
+  });
+
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-make-apikey': 'princess-initial'
+      },
+      body: JSON.stringify(fields)
+    });
+
+    if (res.ok) {
+      document.getElementById('page6').style.display = 'none';
+      document.querySelector('.progress-wrap').style.display = 'none';
+      document.getElementById('successPage').style.display = 'block';
+      window.scrollTo(0,0);
+    } else {
+      throw new Error('送出失敗');
+    }
+  } catch (e) {
+    document.getElementById('errSubmit').style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '送出表單 ✓';
+  }
+}
+</script>
+</body>
+</html>
